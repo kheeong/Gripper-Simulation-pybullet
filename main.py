@@ -6,19 +6,26 @@ import numpy as np
 
 physicsClient = p.connect(p.GUI)
 p.setAdditionalSearchPath(pybullet_data.getDataPath())
-p.loadURDF("plane.urdf", [0, 0, 0])
+
+plane = p.loadURDF("plane.urdf", [0, 0, 0])
+
 p.setGravity(0, 0, 0)
 p.addUserDebugParameter(" Open",1,0,1)
 p.addUserDebugParameter(" Close",1,0,1)
 p.addUserDebugParameter(" Gravity",1,0,1)
 p.addUserDebugParameter(" Next Position",1,0,1)
 p.addUserDebugParameter(" Previous Position",1,0,1)
+p.addUserDebugParameter(" Add Noise",1,0,1)
+p.addUserDebugParameter(" Remove Noise",1,0,1)
 
 Open_param = p.readUserDebugParameter(0)
 Close_param = p.readUserDebugParameter(1)
 gravity = p.readUserDebugParameter(2)
 next_position_count = p.readUserDebugParameter(3)
 previous_position_count = p.readUserDebugParameter(4)
+noise_count = p.readUserDebugParameter(5)
+remove_noise_count = p.readUserDebugParameter(6)
+
 gravity_state = False
 position_counter = 0
 
@@ -127,6 +134,8 @@ class gripper:
 gripper_length = 0.3
 item_position = [0, 0, 0.2]
 
+noise = [0,0,0]
+
 gripper_positions = get_gripper_position(gripper_length, item_position, 1000)
 
 gripper_class = gripper(p.loadURDF("pr2_gripper.urdf", gripper_positions[position_counter],baseOrientation=compute_orientation_towards_target(gripper_positions[position_counter], item_position),useFixedBase=True)) 
@@ -180,7 +189,7 @@ while (1):
         if position_counter >= gripper_positions.shape[0]:
             position_counter = gripper_positions.shape[0] - 1
         
-        p.resetBasePositionAndOrientation(gripper_class.gripper, gripper_positions[position_counter], compute_orientation_towards_target(gripper_positions[position_counter], item_position))
+        p.resetBasePositionAndOrientation(gripper_class.gripper, gripper_positions[position_counter] + noise, compute_orientation_towards_target(gripper_positions[position_counter], item_position))
 
         while (1):
             p.stepSimulation()
@@ -188,9 +197,10 @@ while (1):
             if gripper_class.check_if_gripper_is_open() == True:
                 #print("Gripper is open")
                 break
-
+        
+        p.resetBaseVelocity(item,linearVelocity=[0, 0, 0],angularVelocity=[0, 0, 0])
         p.resetBasePositionAndOrientation(item, item_position, [0, 0, 0, 1])
-
+        
         p.setGravity(0, 0, 0)
         gravity_state = False
 
@@ -205,7 +215,7 @@ while (1):
         if position_counter < 0:
             position_counter = 0
 
-        p.resetBasePositionAndOrientation(gripper_class.gripper, gripper_positions[position_counter], compute_orientation_towards_target(gripper_positions[position_counter], item_position))
+        p.resetBasePositionAndOrientation(gripper_class.gripper, gripper_positions[position_counter] + noise, compute_orientation_towards_target(gripper_positions[position_counter], item_position))
 
         while (1):
             p.stepSimulation()
@@ -214,12 +224,28 @@ while (1):
                 #print("Gripper is open")
                 break
 
+        p.resetBaseVelocity(item,linearVelocity=[0, 0, 0],angularVelocity=[0, 0, 0])
         p.resetBasePositionAndOrientation(item, item_position, [0, 0, 0, 1])
 
         p.setGravity(0, 0, 0)
         gravity_state = False
 
         previous_position_count = p.readUserDebugParameter(4)
+
+    if p.readUserDebugParameter(5) > noise_count:
+        print("Add Noise")
+        noise = np.random.normal(0, 0.001, 3)
+        print(noise)
+        noise_count = p.readUserDebugParameter(5)
+
+    if p.readUserDebugParameter(6) > remove_noise_count:
+        print("Remove Noise")
+        noise = [0,0,0]
+        print(noise)
+        remove_noise_count = p.readUserDebugParameter(6)
     #print(gripper_class.get_joint_positions())
     #print(gripper_class.check_if_gripper_is_close())
+    contact_points = p.getContactPoints(bodyA=item, bodyB=plane)
+    if len(contact_points) > 0:
+        print("Item is on the plane")
     sleep(0.05)
