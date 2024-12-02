@@ -8,11 +8,11 @@ physicsClient = p.connect(p.GUI)
 p.setAdditionalSearchPath(pybullet_data.getDataPath())
 p.loadURDF("plane.urdf", [0, 0, 0])
 p.setGravity(0, 0, 0)
-p.addUserDebugParameter("Open",1,0,1)
-p.addUserDebugParameter("Close",1,0,1)
-p.addUserDebugParameter("Gravity",1,0,1)
-p.addUserDebugParameter("Next Position",1,0,1)
-p.addUserDebugParameter("Previous",1,0,1)
+p.addUserDebugParameter(" Open",1,0,1)
+p.addUserDebugParameter(" Close",1,0,1)
+p.addUserDebugParameter(" Gravity",1,0,1)
+p.addUserDebugParameter(" Next Position",1,0,1)
+p.addUserDebugParameter(" Previous Position",1,0,1)
 
 Open_param = p.readUserDebugParameter(0)
 Close_param = p.readUserDebugParameter(1)
@@ -21,11 +21,6 @@ next_position_count = p.readUserDebugParameter(3)
 previous_position_count = p.readUserDebugParameter(4)
 gravity_state = False
 position_counter = 0
-
-def calculate_gripper_position(object_position):
-    gripper_position = [object_position[0] - 0.3, object_position[1], object_position[2]]
-    print(gripper_position)
-    return gripper_position
 
 def compute_orientation_towards_target(gripper_pos, target_pos):
     # Compute the direction vector from gripper to target
@@ -140,7 +135,7 @@ while (1):
     p.stepSimulation()
     gripper_class.open_gripper()
     if gripper_class.check_if_gripper_is_open() == True:
-        print("Gripper is open")
+        #print("Gripper is open")
         break
 
 item = p.loadURDF("cube_small.urdf", item_position,globalScaling=1)
@@ -179,7 +174,7 @@ while (1):
     if p.readUserDebugParameter(3) > next_position_count:
         #print("Next Position")
         #print(next_position_count)
-        print(position_counter)
+        #print(position_counter)
 
         position_counter += 1
         if position_counter >= gripper_positions.shape[0]:
@@ -191,7 +186,7 @@ while (1):
             p.stepSimulation()
             gripper_class.open_gripper()
             if gripper_class.check_if_gripper_is_open() == True:
-                print("Gripper is open")
+                #print("Gripper is open")
                 break
 
         p.resetBasePositionAndOrientation(item, item_position, [0, 0, 0, 1])
@@ -204,7 +199,7 @@ while (1):
     if p.readUserDebugParameter(4) > previous_position_count:
         #print("Previous Position")
         #print(previous_position_count)
-        print(position_counter)
+        #print(position_counter)
 
         position_counter -= 1
         if position_counter < 0:
@@ -216,7 +211,7 @@ while (1):
             p.stepSimulation()
             gripper_class.open_gripper()
             if gripper_class.check_if_gripper_is_open() == True:
-                print("Gripper is open")
+                #print("Gripper is open")
                 break
 
         p.resetBasePositionAndOrientation(item, item_position, [0, 0, 0, 1])
