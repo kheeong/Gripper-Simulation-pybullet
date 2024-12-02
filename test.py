@@ -1,44 +1,47 @@
-import pybullet as p
-import time
-import math
-from datetime import datetime
-from time import sleep
+import numpy as np
 
-import pybullet_data
+# Sphere parameters
+r = 0.6  # Radius
+center = np.array([0.0, 0.0, 0.0])  # Center of the sphere
 
-p.connect(p.GUI)
-p.setAdditionalSearchPath(pybullet_data.getDataPath())
-p.loadURDF("plane.urdf", [0, 0, -0.3])
-kukaId = p.loadURDF("kuka_iiwa/model.urdf", [0, 0, 0])
-p.resetBasePositionAndOrientation(kukaId, [0, 0, 0], [0, 0, 0, 1])
-kukaEndEffectorIndex = 6
-numJoints = p.getNumJoints(kukaId)
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 
-#Joint damping coefficents. Using large values for the joints that we don't want to move.
-jd = [100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 0.5]
-#jd=[0.5,0.5,0.5,0.5,0.5,0.5,0.5]
+n_samples = 1000
 
-p.setGravity(0, 0, 0)
+# Generate random values
+phi = np.random.uniform(0, 2 * np.pi, n_samples)
+cos_theta = np.random.uniform(-1, 1, n_samples)
+theta = np.arccos(cos_theta)
 
-while 1:
-  p.stepSimulation()
-  for i in range(1):
-    pos = [1, 1, 1]
-    orn = p.getQuaternionFromEuler([0, 0, 3.14])
+# Compute Cartesian coordinates
+x = r * np.sin(theta) * np.cos(phi)
+y = r * np.sin(theta) * np.sin(phi)
+z = r * cos_theta
 
-    jointPoses = p.calculateInverseKinematics(kukaId,
-                                              kukaEndEffectorIndex,
-                                              pos,
-                                              orn,
-                                              jointDamping=jd)
+x += center[0]
+y += center[1]
+z += center[2]
 
-  for i in range(numJoints):
-    p.setJointMotorControl2(bodyIndex=kukaId,
-                            jointIndex=i,
-                            controlMode=p.POSITION_CONTROL,
-                            targetPosition=jointPoses[i],
-                            targetVelocity=0,
-                            force=500,
-                            positionGain=0.03,
-                            velocityGain=1)
-  sleep(0.05)
+# Combine into a list of coordinates
+points = np.vstack((x, y, z)).T
+print(points[0])
+# Visualize the points
+#fig = plt.figure(figsize=(8, 6))
+#ax = fig.add_subplot(111, projection='3d')
+
+#ax.scatter(x, y, z, color='r', s=1)
+#ax.set_box_aspect([1,1,1])
+#ax.set_xlabel('X')
+#ax.set_ylabel('Y')
+#ax.set_zlabel('Z')
+#plt.title('Random Points on Sphere Surface')
+#plt.show()
+
+distances = np.sqrt(x**2 + y**2 + z**2)
+
+# Check if distances are approximately equal to the radius
+tolerance = 1e-6
+on_surface = np.all(np.abs(distances - r) < tolerance)
+
+print(f"All points lie on the sphere's surface: {on_surface}")
