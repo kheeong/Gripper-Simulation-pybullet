@@ -45,7 +45,7 @@ def compute_orientation_towards_target(gripper_pos, target_pos):
     yaw = math.atan2(direction[1], direction[0])
     pitch = -math.asin(direction[2])  # Negative sign depends on coordinate system
     roll = 0  # Assume roll is zero
-    
+
     # Convert to quaternion
     orientation_quaternion = p.getQuaternionFromEuler([roll, pitch, yaw])
     
@@ -245,7 +245,7 @@ while (1):
         remove_noise_count = p.readUserDebugParameter(6)
     #print(gripper_class.get_joint_positions())
     #print(gripper_class.check_if_gripper_is_close())
+   
     contact_points = p.getContactPoints(bodyA=item, bodyB=plane)
     if len(contact_points) > 0:
         print("Item is on the plane")
-    sleep(0.05)
